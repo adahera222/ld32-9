@@ -11,6 +11,11 @@ var trackpoints = [
     [ [-256,0], [-128, 128], [-512, 0] ],
     [ [-256,0], [-128, -128], [-512,0] ] ];
 
+var waves = [ [128, 0, 5,0],
+	      [512, 1, 5,0 ],
+	      [1024, 2, 5 ,0],
+	      [1024+128, 2,5,-200] ];
+
 function Enemy(type) {
     this.type = type;
     this.track = 0;
@@ -25,21 +30,24 @@ function getImage(name)
     return image;
 }
 
-function makeWave() {
-    for(var i=0;i<5;i++) {
+function makeWave(track, number) {
+    for(var i=0;i<number;i++) {
 	enemy = new Enemy(1);
 	enemy.x = 800;
 	enemy.y = 240+32*i;
+	enemy.track = track;
 	enemies[enemies.length] = enemy;
-
-	enemy = new Enemy(2);
-	enemy.x = 800;
-	enemy.y = 120+32*i;
-	enemy.track = 2;
-	enemies[enemies.length] = enemy;
-
     }
 }
+
+function addEnemy(track, yOffset) {
+    enemy = new Enemy(1);
+    enemy.x = 800;
+    enemy.y = 240+yOffset;
+    enemy.track = track;
+    enemies[enemies.length] = enemy;
+}
+
 
 function makeLoopTrack()
 {
@@ -59,7 +67,10 @@ function init()
     skyline = getImage("skyline");
     x = 128;
     y = 128;
+    sx = 0;
+    sy = 0;
     health = 10;
+    waveCount = 0;
     clouds = new Array();
     for(i=0;i<5;i++) {
 	clouds[i] = [ Math.random()*800, Math.random()*480 ];
@@ -100,8 +111,8 @@ function draw() {
     }
 
     drawSkyline();
-  drawClouds();
-  ctx.drawImage(shipImage, x, y);
+    drawClouds();
+    ctx.drawImage(shipImage, x, y);
 
   for(var e=0;e<enemies.length;e++) {
       en = enemies[e];
@@ -147,17 +158,25 @@ function fireBullet() {
 
 function processKeys() {
     if(keysDown[40]) {
-	y += 4;
+	sy += 2;
     }
     if(keysDown[38]) {
-	y -= 4;
+	sy -= 2;
     }
     if(keysDown[37]) {
-	x -= 4;
+	sx -= 2;
     }
     if(keysDown[39]) {
-	x += 4;
+	sx += 2;
     }
+    sx = sx * 0.8;
+    sy = sy * 0.8;
+    if(x<0) { x = 0; }
+    if(x>800-shipImage.width) { x = 800-shipImage.width; }
+    if(y<0) { y = 0; }
+    if(y>480-shipImage.height) { y = 480-shipImage.height; }
+    x += sx;
+    y += sy;
     if(keysDown[32]) {
 	fireBullet();
     }
@@ -234,9 +253,25 @@ function collisionDetector() {
     }
 }
 
+function startWaves() {
+    if(waveCount > 0 && frame%32 ==0) {
+	waveCount -= 1;
+	addEnemy(waveType,waveYoffset);
+    }
+    for(w=0;w<waves.length;w++) {
+	wave = waves[w];
+	if(wave[0] == frame) {
+	    waveCount = wave[2];
+	    waveType = wave[1];
+	    waveYoffset = wave[3];
+	}
+    }
+}
+
 function drawRepeat() {
   frame += 1;
   processKeys();
+    startWaves();
   moveEnemies();
   moveBullets();
   collisionDetector();
