@@ -7,20 +7,36 @@ var x;
 var y;
 var frame = 0;
 
-var trackpoints = [ 
-    [ [-256,0], [-128, 128], [-512, 0] ],
-    [ [-256,0], [-128, -128], [-512,0] ] ];
+// Track types
+DIVE = 0;
+SWOOP = 1;
+SLIDEON = 2;
+LOOP = 3;
+SINE = 4;
 
-var waves = [ [128, 0, 5,0],
-	      [512, 1, 5,0 ],
-	      [1024, 2, 5 ,0],
-	      [1024+128, 2,5,-200] ];
+var trackpoints = [ 
+    [ [-256,0], [-128, 128], [-512, 0] ], // DIVE
+    [ [-256,0], [-128, -128], [-512,0] ],  // SWOOP
+    [ [-32,0]  ]  // SLIDEON
+];
+
+var waves = [ 
+		      [128, 0, 5,0, 0],
+	      [512, 1, 5,0, 0 ],
+	      [1024, LOOP, 5 ,0, 0],
+	      [1024+128, LOOP,5,-200, 0],
+	      [1024+256, SINE, 10, 0, 0],
+	      [1536, SINE, 10, -200, 0],
+	      [1536+256, SLIDEON, 1, 0, 1],
+];
 
 function Enemy(type) {
     this.type = type;
     this.track = 0;
     this.progress = 0;
     this.dead = false;
+    this.health = 1;
+    if(this.type == 1) { this.health = 10; }
 }
 
 function Explosion(x,y) {
@@ -47,8 +63,8 @@ function makeWave(track, number) {
     }
 }
 
-function addEnemy(track, yOffset) {
-    enemy = new Enemy(1);
+function addEnemy(track, yOffset, type) {
+    enemy = new Enemy(type);
     enemy.x = 800;
     enemy.y = 240+yOffset;
     enemy.track = track;
@@ -61,7 +77,16 @@ function makeLoopTrack()
     for(i=0;i<64;i++) {
 	tracks[i] = [ -120 + 400*Math.cos(i/2), 400*Math.sin(i/2) ];
     }
-    trackpoints[2] = tracks;
+    trackpoints[LOOP] = tracks;
+}
+
+function makeSineTrack()
+{
+    tracks = new Array();
+    for(i=0;i<64;i++) {
+	tracks[i] = [ -120, 400*Math.sin(i/2) ];
+    }
+    trackpoints[SINE] = tracks;
 }
 
 function init()
@@ -72,6 +97,7 @@ function init()
     cloud = getImage("cloud");
     skyline = getImage("skyline");
     explosion = getImage("explosion");
+    boss = getImage("magnacrab");
     x = 128;
     y = 128;
     sx = 0;
@@ -86,7 +112,7 @@ function init()
     bulletActive = false;
     enemies = new Array();
     makeLoopTrack();
-    makeWave();
+    makeSineTrack();
     return true;
 }
 
@@ -130,6 +156,21 @@ function drawExplosions()
     }
 }
 
+function drawEnemies()
+{
+    for(var e=0;e<enemies.length;e++) {
+	en = enemies[e];
+	if(!en.dead) {
+	    if(en.type==0) {
+		ctx.drawImage(enemy1, 24*Math.floor((frame/10)%5),0, 24,24, en.x-12, en.y-12, 24,24);
+	    }
+	    else if(en.type==1) {
+		ctx.drawImage(boss, en.x-boss.width/2, en.y-boss.height/2);
+	    }
+	}
+    }
+}
+
 function draw() {
     for(var i=0;i<8;i++) {
 	hex = ((8-i)*16).toString(16);
@@ -141,12 +182,7 @@ function draw() {
     drawSkyline();
     drawClouds();
     ctx.drawImage(shipImage, x, y);
-  for(var e=0;e<enemies.length;e++) {
-      en = enemies[e];
-      if(!en.dead) {
-	  ctx.drawImage(enemy1, 24*Math.floor((frame/10)%5),0, 24,24, en.x-12, en.y-12, 24,24);
-      }
-    }
+    drawEnemies();
     if(bulletActive) {
 	ctx.drawImage(bullet, bx, by);
 	ctx.beginPath();
@@ -235,7 +271,9 @@ function moveEnemies() {
 	en.progress += (track.length);
 	pos = Math.floor(en.progress / 512);
 	if(pos >= track.length) {
-	    en.dead = true;	   
+	    if(en.type == 0) { // Boss stays on screen forever
+		en.dead = true;	   
+	    }
 	}
 	else {
 	    dx = track[pos][0] / 64;
@@ -276,16 +314,23 @@ function collisionDetector() {
 	if(!en.dead) {
 	    if(en.x + enemySize/2 >= x && en.x - enemySize/2<= x + shipImage.width) {
 		if(en.y +enemySize/2 >= y && en.y - enemySize/2<= y + shipImage.height) {
+		    
 		    addExplosion(en.x+enemySize/2,en.y+enemySize/2);
-		    en.dead = true;
+		    en.health -= 1;
 		    health -= 1;
+		    if(en.health<=0) {
+			en.dead = true;
+		    }
 		}
 	    }
 	    if(bulletActive) {
 		if(en.x + enemySize/2 >= bx && en.x -enemySize/2<= bx + bullet.width) {
 		    if(en.y + enemySize/2 >= by && en.y -enemySize/2<= by + bullet.height) {
 			addExplosion(en.x+enemySize/2,en.y+enemySize/2);
-			en.dead = true;
+			en.health -= 1;
+			if(en.health <= 0) {
+			    en.dead = true;
+			}
 		    }
 		}
 	    }	    
@@ -296,14 +341,25 @@ function collisionDetector() {
 function startWaves() {
     if(waveCount > 0 && frame%32 ==0) {
 	waveCount -= 1;
-	addEnemy(waveType,waveYoffset);
+	addEnemy(waveType,waveYoffset,waveEnemy);
     }
-    for(w=0;w<waves.length;w++) {
-	wave = waves[w];
-	if(wave[0] == frame) {
-	    waveCount = wave[2];
-	    waveType = wave[1];
-	    waveYoffset = wave[3];
+    if(waves.length <= 0) return;
+    wave = waves[0];
+    if(wave[0] <= frame) {
+	if(waveCount > 0) {
+	    console.log("WARNING: wave was already running, restarting");
+	}
+	waveCount = wave[2];
+	waveType = wave[1];
+	waveYoffset = wave[3];
+	waveEnemy = wave[4];
+	console.log("Beginning wave: "+waveCount+" enemies type "+waveEnemy+" track "+waveType);
+	waves = waves.slice(1); // Pop off first wave
+	if(waves.length>0) {
+	    console.log("Next wave at frame "+waves[0][0]);
+	}
+	else {
+	    console.log("No more waves");
 	}
     }
 }
@@ -327,7 +383,6 @@ if (canvas.getContext('2d')) {
     body.onkeydown = function (event) {
 	var c = event.keyCode;
         keysDown[c] = 1;
-        console.log("Pressed key: "+c);
 	if(c==81) {
 	    stopRunloop=true;
 	}
