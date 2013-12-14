@@ -7,11 +7,13 @@ var x;
 var y;
 var frame = 0;
 
-var track1points = [ [-256,0], [-128, 128], [-128, 0] ];
+var trackpoints = [ 
+    [ [-256,0], [-128, 128], [-512, 0] ],
+    [ [-256,0], [-128, -128], [-512,0] ] ];
 
 function Enemy(type) {
     this.type = type;
-    this.track = 1;
+    this.track = 0;
     this.progress = 0;
     this.dead = false;
 }
@@ -33,7 +35,7 @@ function makeWave() {
 	enemy = new Enemy(2);
 	enemy.x = 800;
 	enemy.y = 32*i;
-	enemy.track = 2;
+	enemy.track = 1;
 	enemies[enemies.length] = enemy;
 
     }
@@ -44,18 +46,38 @@ function init()
     shipImage = getImage("ship");
     enemy1 = getImage("spr385283-29-22.600");
     bullet = getImage("bullet");
+    cloud = getImage("cloud");
     x = 128;
     y = 128;
     health = 10;
+    clouds = new Array();
+    for(i=0;i<5;i++) {
+	clouds[i] = [ Math.random()*800, Math.random()*480 ];
+    }
     bulletActive = false;
     enemies = new Array();
     makeWave();
     return true;
 }
 
+function drawClouds()
+{
+    for(i=0;i<5;i++) {
+	cx = clouds[i][0];
+	cy = clouds[i][1];
+	ctx.drawImage(cloud, cx, cy);
+	clouds[i][0] = cx - 16;
+	if(cx < -cloud.width) {
+	    clouds[i] = [ 800, Math.random()*480 ];
+	}
+    }
+}
+
 function draw() {
   ctx.fillStyle = "#7F7fff";
   ctx.fillRect(0,0,800,480);
+
+  drawClouds();
   ctx.drawImage(shipImage, x, y);
 
   for(var e=0;e<enemies.length;e++) {
@@ -140,12 +162,13 @@ function moveEnemies() {
 	en = enemies[e];
 	en.progress += 1;
 	pos = Math.floor(en.progress / 128);
-	if(pos >= track1points.length) {
+	var track = trackpoints[en.track];
+	if(pos >= track.length) {
 	    en.dead = true;	   
 	}
 	else {
-	    dx = track1points[pos][0] / 128;
-	    dy = track1points[pos][1] / 128;
+	    dx = track[pos][0] / 128;
+	    dy = track[pos][1] / 128;
 	    en.x += dx;
 	    en.y += dy;
 	}
