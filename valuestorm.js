@@ -85,6 +85,12 @@ function processKeys() {
 	fireBullet();
     }
 }
+function moveBullets() {
+    if(bulletActive) {
+	bx += bdx;
+	by += bdy;
+    }
+}
 
 function moveEnemies() {
     for(var e=0;e<enemies.length;e++) {
@@ -115,10 +121,11 @@ function collisionDetector() {
 }
 
 function drawRepeat() {
-    frame += 1;
+  frame += 1;
   processKeys();
-    moveEnemies();
-    collisionDetector();
+  moveEnemies();
+  moveBullets();
+  collisionDetector();
   draw();
   setTimeout('drawRepeat()',20);
 }
