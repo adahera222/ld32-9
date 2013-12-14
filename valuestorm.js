@@ -40,6 +40,7 @@ function Enemy(type) {
 }
 
 function Explosion(x,y) {
+    explosionSound.play();
     this.x = x;
     this.y = y;
     this.stage = 0;
@@ -98,6 +99,8 @@ function init()
     skyline = getImage("skyline");
     explosion = getImage("explosion");
     boss = getImage("magnacrab");
+    shootSound = new Audio("audio/lowres-shoot.wav");
+    explosionSound = new Audio("audio/lowres-explode.wav");
     x = 128;
     y = 128;
     sx = 0;
@@ -213,6 +216,7 @@ function draw() {
 
 function fireBullet() {
     if(bulletActive) return;
+    shootSound.play();
     bx = x+shipImage.width/2;
     by = y+shipImage.height/2;
     bulletActive = true;
