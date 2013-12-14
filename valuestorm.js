@@ -34,11 +34,20 @@ function makeWave() {
 
 	enemy = new Enemy(2);
 	enemy.x = 800;
-	enemy.y = 32*i;
-	enemy.track = 1;
+	enemy.y = 120+32*i;
+	enemy.track = 2;
 	enemies[enemies.length] = enemy;
 
     }
+}
+
+function makeLoopTrack()
+{
+    tracks = new Array();
+    for(i=0;i<64;i++) {
+	tracks[i] = [ -120 + 400*Math.cos(i/2), 400*Math.sin(i/2) ];
+    }
+    trackpoints[2] = tracks;
 }
 
 function init()
@@ -57,6 +66,7 @@ function init()
     }
     bulletActive = false;
     enemies = new Array();
+    makeLoopTrack();
     makeWave();
     return true;
 }
@@ -173,9 +183,9 @@ function moveBullets() {
 function moveEnemies() {
     for(var e=0;e<enemies.length;e++) {
 	en = enemies[e];
-	en.progress += 1;
-	pos = Math.floor(en.progress / 128);
 	var track = trackpoints[en.track];
+	en.progress += (track.length);
+	pos = Math.floor(en.progress / 1024);
 	if(pos >= track.length) {
 	    en.dead = true;	   
 	}
