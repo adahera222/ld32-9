@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-f = open("graphics_in/explosion.svg","wt")
+f = open("graphics/explosion.svg","wt")
 
 f.write("""
 <svg
