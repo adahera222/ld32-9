@@ -40,7 +40,8 @@ function Enemy(type) {
 }
 
 function Explosion(x,y) {
-    explosionSound.play();
+    explosionSounds[explosionNo%2].play();
+    explosionNo+=1;
     this.x = x;
     this.y = y;
     this.stage = 0;
@@ -100,7 +101,10 @@ function init()
     explosion = getImage("explosion");
     boss = getImage("magnacrab");
     shootSound = new Audio("audio/lowres-shoot.wav");
-    explosionSound = new Audio("audio/lowres-explode.wav");
+    explosionSounds = new Array();
+    explosionSounds[0]= new Audio("audio/lowres-explode.wav");
+    explosionSounds[1]= new Audio("audio/lowres-explode.wav");
+    explosionNo = 0;
     springSound = new Audio("audio/spring.wav");
     music = new Audio("vikings-mono.ogg");
     music.loop = true;
