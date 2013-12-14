@@ -173,11 +173,13 @@ function drawExplosions()
 
 function drawEnemies()
 {
+    var enemySize = 48;
     for(var e=0;e<enemies.length;e++) {
 	en = enemies[e];
 	if(!en.dead) {
 	    if(en.type==0) {
-		ctx.drawImage(enemy1, 24*Math.floor((frame/10)%5),0, 24,24, en.x-12, en.y-12, 24,24);
+		ctx.drawImage(enemy1, enemySize*Math.floor((frame/10)%5),0, enemySize,enemySize,
+                              en.x-enemySize/2, en.y-enemySize/2, enemySize,enemySize);
 	    }
 	    else if(en.type==1) {
 		ctx.drawImage(boss, en.x-boss.width/2, en.y-boss.height/2);
@@ -212,10 +214,10 @@ function draw() {
 	for(var i=0;i<health;i++) {
 	    ctx.fillStyle = "#000000";
 	    ctx.fillRect(6+i*16,6,12,20);
-	    if(i>5) {
+	    if(i>=5) {
 		ctx.fillStyle = "#00FF00";
 	    }
-	    else if(i>2) {
+	    else if(i>=2) {
 		ctx.fillStyle = "#FFFF00";
 	    }
 	    else {
@@ -330,7 +332,7 @@ function purge()
 
 function collisionDetector() {
     for(var e=0;e<enemies.length;e++) {
-	enemySize = 24;
+	enemySize = 48;
 	en = enemies[e];
 	if(!en.dead) {
 	    if(en.x + enemySize/2 >= x && en.x - enemySize/2<= x + shipImage.width) {
