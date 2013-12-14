@@ -47,6 +47,7 @@ function init()
     enemy1 = getImage("spr385283-29-22.600");
     bullet = getImage("bullet");
     cloud = getImage("cloud");
+    skyline = getImage("skyline");
     x = 128;
     y = 128;
     health = 10;
@@ -73,10 +74,22 @@ function drawClouds()
     }
 }
 
-function draw() {
-  ctx.fillStyle = "#7F7fff";
-  ctx.fillRect(0,0,800,480);
+function drawSkyline()
+{
+  rot = (frame / 4) % 800;
+  ctx.drawImage(skyline, -rot, 480-skyline.height);
+  ctx.drawImage(skyline, 800-rot, 480-skyline.height);
+}
 
+function draw() {
+    for(var i=0;i<8;i++) {
+	hex = ((8-i)*16).toString(16);
+	if(i==0) hex = "7F";
+	ctx.fillStyle = "#"+hex+hex+"ff";
+	ctx.fillRect(0,60*i,800,60);
+    }
+
+    drawSkyline();
   drawClouds();
   ctx.drawImage(shipImage, x, y);
 
@@ -218,16 +231,20 @@ function drawRepeat() {
   collisionDetector();
   if(frame % 128 == 0) purge();
   draw();
-  setTimeout('drawRepeat()',20);
+    if(!stopRunloop) setTimeout('drawRepeat()',20);
 }
 
 if (canvas.getContext('2d')) {
+    stopRunloop = false;
     ctx = canvas.getContext('2d');
     ctx.font="bold 32px Arial";
     body.onkeydown = function (event) {
 	var c = event.keyCode;
         keysDown[c] = 1;
         console.log("Pressed key: "+c);
+	if(c==81) {
+	    stopRunloop=true;
+	}
     };
 
     body.onkeyup = function (event) {

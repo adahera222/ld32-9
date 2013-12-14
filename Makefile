@@ -4,5 +4,6 @@ graphics: FORCE
 	convert -background none -resize 25% graphics_in/ship.svg graphics/ship.png
 	convert -background none -resize 5% graphics_in/bullet.svg graphics/bullet.png
 	convert -background none -resize 25% graphics_in/cloud.svg graphics/cloud.png
+	convert -background none -resize 50% graphics_in/skyline.svg graphics/skyline.png
 	convert -scale 200% graphics_in/spr385283-29-22.600.png graphics/spr385283-29-22.600.png
 FORCE:
