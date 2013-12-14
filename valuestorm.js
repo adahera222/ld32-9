@@ -39,6 +39,7 @@ function init()
     bullet = getImage("bullet");
     x = 128;
     y = 128;
+    health = 10;
     bulletActive = false;
     enemies = new Array();
     makeWave();
@@ -63,12 +64,25 @@ function draw() {
 	ctx.lineTo(bx+bullet.width/2,by+bullet.height/2);
 	ctx.stroke();
     }
+    // Draw health on top
+    for(var i=0;i<health;i++) {
+	if(i>5) {
+	    ctx.fillStyle = "#00FF00";
+	}
+	else if(i>2) {
+	    ctx.fillStyle = "#FFFF00";
+	}
+	else {
+	    ctx.fillStyle = "#FF0000";
+	}
+	ctx.fillRect(8+i*16,8,8,16);
+    }
 }
 
 function fireBullet() {
     if(bulletActive) return;
-    bx = x;
-    by = y;
+    bx = x+shipImage.width/2;
+    by = y+shipImage.height/2;
     bulletActive = true;
     bdx = 32;
     bdy = 0;
@@ -102,8 +116,8 @@ function moveBullets() {
 	if(captureTimeout < 0 && Math.abs(dx)< 32 && Math.abs(dy)<32) {
 	    bulletActive = false;
 	} else {
-	    bdx -= (dx/100);
-	    bdy -= (dy/100);
+	    bdx -= (dx/300);
+	    bdy -= (dy/300);
 	    bdx *= 0.95;
 	    bdy *= 0.95;
 	}	
@@ -147,7 +161,8 @@ function collisionDetector() {
 	if(!en.dead) {
 	    if(en.x >= x && en.x <= x + shipImage.width) {
 		if(en.y >= y && en.y <= y + shipImage.height) {
-		    console.log("Collision!");
+		    en.dead = true;
+		    health -= 1;
 		}
 	    }
 	    if(bulletActive) {
