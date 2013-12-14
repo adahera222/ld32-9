@@ -101,6 +101,14 @@ function init()
     boss = getImage("magnacrab");
     shootSound = new Audio("audio/lowres-shoot.wav");
     explosionSound = new Audio("audio/lowres-explode.wav");
+    springSound = new Audio("audio/spring.wav");
+    music = new Audio("vikings-mono.ogg");
+    music.loop = true;
+    music.addEventListener('ended', function() {
+        this.currentTime = 0;
+        this.play();
+    }, false);
+    music.play();
     x = 128;
     y = 128;
     sx = 0;
@@ -220,6 +228,7 @@ function fireBullet() {
     bx = x+shipImage.width/2;
     by = y+shipImage.height/2;
     bulletActive = true;
+    bulletSprung = false;
     bdx = 32;
     bdy = 0;
     captureTimeout = 10;
@@ -255,6 +264,10 @@ function moveBullets() {
 	captureTimeout -= 1;
 	bx += bdx;
 	by += bdy;
+        if(bdx < 0 && !bulletSprung) {
+            springSound.play();
+            bulletSprung = true;
+        }
 	dx = bx - x - shipImage.width/2;
 	dy = by - y - shipImage.height/2;
 	if(captureTimeout < 0 && Math.abs(dx)< 32 && Math.abs(dy)<32) {
