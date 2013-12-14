@@ -7,7 +7,7 @@ var x;
 var y;
 var frame = 0;
 
-var track1points = [ [-256,0], [-128, 128], [-512, 0] ];
+var track1points = [ [-256,0], [-128, 128], [-128, 0] ];
 
 function Enemy(type) {
     this.type = type;
@@ -52,7 +52,9 @@ function draw() {
 
   for(var e=0;e<enemies.length;e++) {
       en = enemies[e];
-      ctx.drawImage(enemy1, 24*Math.floor((frame/10)%5),0, 24,24, en.x-12, en.y-12, 24,24);
+      if(!en.dead) {
+	  ctx.drawImage(enemy1, 24*Math.floor((frame/10)%5),0, 24,24, en.x-12, en.y-12, 24,24);
+      }
   }
     if(bulletActive) {
 	ctx.drawImage(bullet, bx, by);
@@ -109,13 +111,36 @@ function moveEnemies() {
     }
 }
 
+function purge()
+{
+    newEnemies = Array();
+    j = 0;
+    for(i=0;i<enemies.length;i++) {
+	en = enemies[i]
+	if(!en.dead) {
+	    newEnemies[j] = en;
+	    j+=1;
+	}
+    }
+    enemies = newEnemies;
+}
+
 function collisionDetector() {
     for(var e=0;e<enemies.length;e++) {
 	en = enemies[e];
-	if(en.x >= x && en.x <= x + shipImage.width) {
-	    if(en.y >= y && en.y <= y + shipImage.height) {
-		console.log("Collision!");
+	if(!en.dead) {
+	    if(en.x >= x && en.x <= x + shipImage.width) {
+		if(en.y >= y && en.y <= y + shipImage.height) {
+		    console.log("Collision!");
+		}
 	    }
+	    if(bulletActive) {
+		if(en.x >= bx && en.x <= bx + bullet.width) {
+		    if(en.y >= by && en.y <= by + bullet.height) {
+			en.dead = true;
+		    }
+		}
+	    }	    
 	}
     }
 }
@@ -126,6 +151,7 @@ function drawRepeat() {
   moveEnemies();
   moveBullets();
   collisionDetector();
+  if(frame % 128 == 0) purge();
   draw();
   setTimeout('drawRepeat()',20);
 }
