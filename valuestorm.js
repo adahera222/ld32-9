@@ -23,6 +23,13 @@ function Enemy(type) {
     this.dead = false;
 }
 
+function Explosion(x,y) {
+    this.x = x;
+    this.y = y;
+    this.stage = 0;
+    this.dead = false;
+}
+
 function getImage(name)
 {
     image = new Image();
@@ -48,7 +55,6 @@ function addEnemy(track, yOffset) {
     enemies[enemies.length] = enemy;
 }
 
-
 function makeLoopTrack()
 {
     tracks = new Array();
@@ -65,10 +71,12 @@ function init()
     bullet = getImage("bullet");
     cloud = getImage("cloud");
     skyline = getImage("skyline");
+    explosion = getImage("explosion");
     x = 128;
     y = 128;
     sx = 0;
     sy = 0;
+    explosions = new Array();
     health = 10;
     waveCount = 0;
     clouds = new Array();
@@ -102,6 +110,26 @@ function drawSkyline()
   ctx.drawImage(skyline, 800-rot, 480-skyline.height);
 }
 
+function addExplosion(x,y)
+{
+    explosions[explosions.length] = new Explosion(x,y);
+}
+
+function drawExplosions()
+{
+    var explosionSize = 64;
+    for(var e=0;e<explosions.length;e++) {
+	ex = explosions[e];
+	if(!ex.dead) {
+	    ctx.drawImage(explosion, explosionSize*ex.stage,0,explosionSize,explosionSize,ex.x-explosionSize/2,ex.y-explosionSize/2,explosionSize,explosionSize);
+	    ex.stage += 1;
+	    if(ex.stage > 32) {
+		ex.dead = true;
+	    }
+	}
+    }
+}
+
 function draw() {
     for(var i=0;i<8;i++) {
 	hex = ((8-i)*16).toString(16);
@@ -113,7 +141,6 @@ function draw() {
     drawSkyline();
     drawClouds();
     ctx.drawImage(shipImage, x, y);
-
   for(var e=0;e<enemies.length;e++) {
       en = enemies[e];
       if(!en.dead) {
@@ -127,6 +154,8 @@ function draw() {
 	ctx.lineTo(bx+bullet.width/2,by+bullet.height/2);
 	ctx.stroke();
     }
+
+    drawExplosions();
     // Draw health on top
     if(health > 3 || (frame%8)>4) {
 	for(var i=0;i<health;i++) {
@@ -222,13 +251,22 @@ function purge()
     newEnemies = Array();
     j = 0;
     for(i=0;i<enemies.length;i++) {
-	en = enemies[i]
+	en = enemies[i];
 	if(!en.dead) {
 	    newEnemies[j] = en;
 	    j+=1;
 	}
     }
     enemies = newEnemies;
+    newExplosions = Array();
+    j = 0;
+    for(i=0;i<explosions.length;i++) {
+	ex = explosions[i];
+	if(!ex.dead) {
+	    newExplosions[j] = ex;
+	}
+    }
+    explosions = newExplosions;
 }
 
 function collisionDetector() {
@@ -238,6 +276,7 @@ function collisionDetector() {
 	if(!en.dead) {
 	    if(en.x + enemySize/2 >= x && en.x - enemySize/2<= x + shipImage.width) {
 		if(en.y +enemySize/2 >= y && en.y - enemySize/2<= y + shipImage.height) {
+		    addExplosion(en.x+enemySize/2,en.y+enemySize/2);
 		    en.dead = true;
 		    health -= 1;
 		}
@@ -245,6 +284,7 @@ function collisionDetector() {
 	    if(bulletActive) {
 		if(en.x + enemySize/2 >= bx && en.x -enemySize/2<= bx + bullet.width) {
 		    if(en.y + enemySize/2 >= by && en.y -enemySize/2<= by + bullet.height) {
+			addExplosion(en.x+enemySize/2,en.y+enemySize/2);
 			en.dead = true;
 		    }
 		}
