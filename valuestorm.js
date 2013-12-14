@@ -55,9 +55,13 @@ function draw() {
       if(!en.dead) {
 	  ctx.drawImage(enemy1, 24*Math.floor((frame/10)%5),0, 24,24, en.x-12, en.y-12, 24,24);
       }
-  }
+    }
     if(bulletActive) {
 	ctx.drawImage(bullet, bx, by);
+	ctx.beginPath();
+	ctx.moveTo(x+shipImage.width/2,y+shipImage.height/2);
+	ctx.lineTo(bx+bullet.width/2,by+bullet.height/2);
+	ctx.stroke();
     }
 }
 
@@ -68,6 +72,7 @@ function fireBullet() {
     bulletActive = true;
     bdx = 32;
     bdy = 0;
+    captureTimeout = 10;
 }
 
 function processKeys() {
@@ -89,8 +94,19 @@ function processKeys() {
 }
 function moveBullets() {
     if(bulletActive) {
+	captureTimeout -= 1;
 	bx += bdx;
 	by += bdy;
+	dx = bx - x - shipImage.width/2;
+	dy = by - y - shipImage.height/2;
+	if(captureTimeout < 0 && Math.abs(dx)< 32 && Math.abs(dy)<32) {
+	    bulletActive = false;
+	} else {
+	    bdx -= (dx/100);
+	    bdy -= (dy/100);
+	    bdx *= 0.95;
+	    bdy *= 0.95;
+	}	
     }
 }
 
