@@ -29,6 +29,13 @@ function makeWave() {
 	enemy.x = 800;
 	enemy.y = 240+32*i;
 	enemies[enemies.length] = enemy;
+
+	enemy = new Enemy(2);
+	enemy.x = 800;
+	enemy.y = 32*i;
+	enemy.track = 2;
+	enemies[enemies.length] = enemy;
+
     }
 }
 
@@ -65,17 +72,21 @@ function draw() {
 	ctx.stroke();
     }
     // Draw health on top
-    for(var i=0;i<health;i++) {
-	if(i>5) {
-	    ctx.fillStyle = "#00FF00";
+    if(health > 3 || (frame%8)>4) {
+	for(var i=0;i<health;i++) {
+	    ctx.fillStyle = "#000000";
+	    ctx.fillRect(6+i*16,6,12,20);
+	    if(i>5) {
+		ctx.fillStyle = "#00FF00";
+	    }
+	    else if(i>2) {
+		ctx.fillStyle = "#FFFF00";
+	    }
+	    else {
+		ctx.fillStyle = "#FF0000";
+	    }
+	    ctx.fillRect(8+i*16,8,8,16);
 	}
-	else if(i>2) {
-	    ctx.fillStyle = "#FFFF00";
-	}
-	else {
-	    ctx.fillStyle = "#FF0000";
-	}
-	ctx.fillRect(8+i*16,8,8,16);
     }
 }
 
