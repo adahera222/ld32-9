@@ -7,7 +7,7 @@ var x;
 var y;
 var frame = 0;
 
-var track1points = [ [0,0], [ -128, 128], [-128, 0]];
+var track1points = [ [-256,0], [-128, 128], [-512, 0] ];
 
 function Enemy(type) {
     this.type = type;
@@ -26,8 +26,8 @@ function getImage(name)
 function makeWave() {
     for(var i=0;i<5;i++) {
 	enemy = new Enemy(1);
-	enemy.x = 400+32*i;
-	enemy.y = 240;
+	enemy.x = 800;
+	enemy.y = 240+32*i;
 	enemies[enemies.length] = enemy;
     }
 }
@@ -36,8 +36,10 @@ function init()
 {
     shipImage = getImage("ship");
     enemy1 = getImage("spr385283-29-22.600");
+    bullet = getImage("bullet");
     x = 128;
     y = 128;
+    bulletActive = false;
     enemies = new Array();
     makeWave();
     return true;
@@ -52,6 +54,18 @@ function draw() {
       en = enemies[e];
       ctx.drawImage(enemy1, 24*Math.floor((frame/10)%5),0, 24,24, en.x-12, en.y-12, 24,24);
   }
+    if(bulletActive) {
+	ctx.drawImage(bullet, bx, by);
+    }
+}
+
+function fireBullet() {
+    if(bulletActive) return;
+    bx = x;
+    by = y;
+    bulletActive = true;
+    bdx = 32;
+    bdy = 0;
 }
 
 function processKeys() {
@@ -66,6 +80,9 @@ function processKeys() {
     }
     if(keysDown[39]) {
 	x += 4;
+    }
+    if(keysDown[32]) {
+	fireBullet();
     }
 }
 
