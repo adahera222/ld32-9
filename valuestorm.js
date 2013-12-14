@@ -7,8 +7,13 @@ var x;
 var y;
 var frame = 0;
 
+var track1points = [ [0,0], [ -128, 128], [-128, 0]];
+
 function Enemy(type) {
     this.type = type;
+    this.track = 1;
+    this.progress = 0;
+    this.dead = false;
 }
 
 function getImage(name)
@@ -64,12 +69,38 @@ function processKeys() {
     }
 }
 
+function moveEnemies() {
+    for(var e=0;e<enemies.length;e++) {
+	en = enemies[e];
+	en.progress += 1;
+	pos = Math.floor(en.progress / 128);
+	if(pos >= track1points.length) {
+	    en.dead = true;	   
+	}
+	else {
+	    dx = track1points[pos][0] / 128;
+	    dy = track1points[pos][1] / 128;
+	    en.x += dx;
+	    en.y += dy;
+	}
+    }
+}
+
 function collisionDetector() {
+    for(var e=0;e<enemies.length;e++) {
+	en = enemies[e];
+	if(en.x >= x && en.x <= x + shipImage.width) {
+	    if(en.y >= y && en.y <= y + shipImage.height) {
+		console.log("Collision!");
+	    }
+	}
+    }
 }
 
 function drawRepeat() {
     frame += 1;
   processKeys();
+    moveEnemies();
     collisionDetector();
   draw();
   setTimeout('drawRepeat()',20);
