@@ -214,17 +214,18 @@ function purge()
 
 function collisionDetector() {
     for(var e=0;e<enemies.length;e++) {
+	enemySize = 24;
 	en = enemies[e];
 	if(!en.dead) {
-	    if(en.x >= x && en.x <= x + shipImage.width) {
-		if(en.y >= y && en.y <= y + shipImage.height) {
+	    if(en.x + enemySize/2 >= x && en.x - enemySize/2<= x + shipImage.width) {
+		if(en.y +enemySize/2 >= y && en.y - enemySize/2<= y + shipImage.height) {
 		    en.dead = true;
 		    health -= 1;
 		}
 	    }
 	    if(bulletActive) {
-		if(en.x >= bx && en.x <= bx + bullet.width) {
-		    if(en.y >= by && en.y <= by + bullet.height) {
+		if(en.x + enemySize/2 >= bx && en.x -enemySize/2<= bx + bullet.width) {
+		    if(en.y + enemySize/2 >= by && en.y -enemySize/2<= by + bullet.height) {
 			en.dead = true;
 		    }
 		}
