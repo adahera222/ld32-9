@@ -204,13 +204,13 @@ function moveEnemies() {
 	en = enemies[e];
 	var track = trackpoints[en.track];
 	en.progress += (track.length);
-	pos = Math.floor(en.progress / 1024);
+	pos = Math.floor(en.progress / 512);
 	if(pos >= track.length) {
 	    en.dead = true;	   
 	}
 	else {
-	    dx = track[pos][0] / 128;
-	    dy = track[pos][1] / 128;
+	    dx = track[pos][0] / 64;
+	    dy = track[pos][1] / 64;
 	    en.x += dx;
 	    en.y += dy;
 	}
