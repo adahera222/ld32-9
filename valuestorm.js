@@ -20,6 +20,7 @@ var trackpoints = [
 ];
 
 var waves = [ 
+	      [0, SLIDEON, 1,   0, 1],
               [128,      DIVE,    5,-128, 0],
 	      [384,      SWOOP,   5, 128, 0],
 	      [1024,     LOOP,    5,   0, 0],
@@ -440,7 +441,13 @@ function purge()
 }
 
 function pixelCollision(x,y) {
-    return true;
+    px = Math.floor(x/8);
+    py = Math.floor(y/8);
+    pwide = Math.floor(getFrameWidth(1)/8);
+    console.log("pwide= "+pwide);
+    alpha = collideData[px+py*pwide];
+    console.log("Collision detector: "+x+","+y+ "= grid ref "+px+","+py+" = ref "+px+py*pwide+" alpha "+alpha);
+    return alpha > 127;
 }
 
 function collisionDetector() {
@@ -467,8 +474,8 @@ function collisionDetector() {
 	    if(bulletActive) {
 		if(en.x + enemyWidth/2 >= bx && en.x -enemyWidth/2<= bx + bullet.width) {
 		    if(en.y + enemyHeight/2 >= by && en.y -enemyHeight/2<= by + bullet.height) {
-			if(en.type == 0 || pixelCollision(bx - en.x-enemyWidth/2, by-en.y-enemyHeight/2)) {
-			    addExplosion(en.x,en.y);
+			if(en.type == 0 || pixelCollision(bx - en.x+enemyWidth/2, by-en.y+enemyHeight/2)) {
+			    addExplosion(bx,by);
 			    en.health -= 1;
 			    if(en.health <= 0) {
 				en.dead = true;
