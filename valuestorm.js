@@ -15,14 +15,14 @@ LOOP = 3;
 SINE = 4;
 
 var trackpoints = [ 
-    [ [-256,0], [-128, 128], [-512, 0] ], // DIVE
-    [ [-256,0], [-128, -128], [-512,0] ],  // SWOOP
+    [ [-200,0], [-128, 128], [-512, 0] ], // DIVE
+    [ [-200,0], [-128, -128], [-512,0] ],  // SWOOP
     [ [-32,0]  ]  // SLIDEON
 ];
 
 var waves = [ 
-		      [128, 0, 5,0, 0],
-	      [512, 1, 5,0, 0 ],
+		      [128, 0, 5,-128, 0],
+	      [384, 1, 5,128, 0 ],
 	      [1024, LOOP, 5 ,0, 0],
 	      [1024+128, LOOP,5,-200, 0],
 	      [1024+256, SINE, 10, 0, 0],
@@ -91,8 +91,80 @@ function makeSineTrack()
     trackpoints[SINE] = tracks;
 }
 
+function drawChar(c, cx, cy) 
+{
+    c = c.charCodeAt(0);
+    if(c >= 65 && c <= 90) {
+	index = c-65+14;
+    }
+    else if(c >= 48 && c <= 57) {
+	index = c-48+3;
+    }
+    else if(c==32) {
+	return;
+    }
+    else if(c == 46) { index = 40; }
+    else if(c == 44) { index = 41; }
+    else
+    {
+	titlectx.fillStyle = "#ff0000";
+	titlectx.fillRect(x,y,8,8);
+	return;
+    }
+    titlectx.drawImage(bitfont, index*6, 0, 6,10,cx,cy,12,20);
+}
+
+function drawString(string, cx, cy) {
+    string = string.toUpperCase();
+    for(i=0;i<string.length;i++) {
+	drawChar(string[i], cx,cy);
+	cx += 12;
+    }
+}
+
+function paintTitleBitmap()
+{
+    drawString('It is the 28th year of continuous alien attack of earth.',32,32);
+    drawString('Due to budget underruns we can only supply you with one ',32,64);
+    drawString('bullet to defend our planet.',32,96);
+    drawString('To protect our assets, your bullet is connected by elastic ',32,128);
+    drawString('to your fighter aircraft. Please try to return with the ',32,160);
+    drawString('bullet intact.',32,192);
+    drawString('Press space to defend earth',64,256);
+}
+
+function makeTitleBitmap()
+{
+    titleBitmap = document.createElement('canvas');
+    titleBitmap.width = 800;
+    titleBitmap.height = 480;
+    titlectx = titleBitmap.getContext('2d');
+    bitfont = new Image();
+    bitfont.src = "graphics/bitfont.png";
+    bitfont.onload = paintTitleBitmap;
+    return titleBitmap;
+}
+
+function resetGame()
+{
+    x = 128;
+    y = 128;
+    sx = 0;
+    sy = 0;
+    explosions = new Array();
+    health = 10;
+    waveCount = 0;
+    clouds = new Array();
+    for(i=0;i<5;i++) {
+	clouds[i] = [ Math.random()*800, Math.random()*480 ];
+    }
+    bulletActive = false;
+    enemies = new Array();
+}
+
 function init()
 {
+    mode = 0;
     shipImage = getImage("ship");
     enemy1 = getImage("spr385283-29-22.600");
     bullet = getImage("bullet");
@@ -113,23 +185,13 @@ function init()
         this.play();
     }, false);
     music.play();
-    x = 128;
-    y = 128;
-    sx = 0;
-    sy = 0;
-    explosions = new Array();
-    health = 10;
-    waveCount = 0;
-    clouds = new Array();
-    for(i=0;i<5;i++) {
-	clouds[i] = [ Math.random()*800, Math.random()*480 ];
-    }
-    bulletActive = false;
-    enemies = new Array();
     makeLoopTrack();
     makeSineTrack();
+    titleBitmap = makeTitleBitmap();    
     return true;
 }
+
+
 
 function drawClouds()
 {
@@ -194,6 +256,12 @@ function draw() {
 	if(i==0) hex = "7F";
 	ctx.fillStyle = "#"+hex+hex+"ff";
 	ctx.fillRect(0,60*i,800,60);
+    }
+
+    if(mode==0) {
+	ctx.drawImage(titleBitmap, 0, 0);
+
+	return;
     }
 
     drawSkyline();
@@ -372,8 +440,8 @@ function startWaves() {
 	if(waveCount > 0) {
 	    console.log("WARNING: wave was already running, restarting");
 	}
-	waveCount = wave[2];
 	waveType = wave[1];
+	waveCount = wave[2];
 	waveYoffset = wave[3];
 	waveEnemy = wave[4];
 	console.log("Beginning wave: "+waveCount+" enemies type "+waveEnemy+" track "+waveType);
@@ -388,14 +456,20 @@ function startWaves() {
 }
 
 function drawRepeat() {
-  frame += 1;
-  processKeys();
-    startWaves();
-  moveEnemies();
-  moveBullets();
-  collisionDetector();
-  if(frame % 128 == 0) purge();
-  draw();
+    if(mode==0) {
+    }
+    else
+    {
+	processKeys();
+	frame += 1;
+	startWaves();
+	moveEnemies();
+	moveBullets();
+	collisionDetector();
+	if(frame % 128 == 0) purge();
+    }
+	draw();
+
     if(!stopRunloop) setTimeout('drawRepeat()',20);
 }
 
@@ -412,6 +486,12 @@ if (canvas.getContext('2d')) {
         if(c==77) {
             music.pause();
         }
+	if(c==32) {
+	    if(mode==0) {
+		resetGame();
+		mode = 1;
+	    }
+	}
     };
 
     body.onkeyup = function (event) {
