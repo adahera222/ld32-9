@@ -617,7 +617,9 @@ function drawRepeat() {
 	startWaves();
 	moveEnemies();
 	moveBullets();
-	collisionDetector();
+	if(deathAnimation == -1) {
+	    collisionDetector();
+        }
 	if(frame % 128 == 0) purge();
     }
 	draw();
