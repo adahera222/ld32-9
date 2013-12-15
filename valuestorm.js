@@ -16,18 +16,21 @@ SINE = 4;
 var trackpoints = [ 
     [ [-200,0], [-128, 128], [-512, 0] ], // DIVE
     [ [-200,0], [-128, -128], [-512,0] ],  // SWOOP
-    [ [-128,0]  ]  // SLIDEON
+    [ [-110,0]  ]  // SLIDEON
 ];
 
 var waves = [ 
-	      [0, SLIDEON, 1,   0, 1],
-              [128,      DIVE,    5,-128, 0],
-	      [384,      SWOOP,   5, 128, 0],
-	      [1024,     LOOP,    5,   0, 0],
-	      [1024+128, LOOP,    5,-200, 0],
-	      [1024+256, SINE,   10,   0, 0],
-	      [1536,     SINE,   10,-200, 0],
-	      [1536+256, SLIDEON, 1,   0, 1],
+              [100,      DIVE,    5,-128, 0],
+	      [400,      SWOOP,   5, 128, 0],
+	      [700,     LOOP,    5,   0, 0],
+	      [900, LOOP,    5,-200, 0],
+	      [1100, SINE,   10,   0, 0],
+	      [1300,     SINE,   10,-200, 0],
+	      [1500, SLIDEON, 1,   0, 1],
+	      [1900, SINE,   10,   0, 0],
+	      [2100,     SINE,   10,-200, 0],
+	      [2500,     LOOP,    5,   0, 0],
+	      [2700, LOOP,    5,-200, 0],
 ];
 
 function Enemy(type) {
@@ -36,7 +39,7 @@ function Enemy(type) {
     this.progress = 0;
     this.dead = false;
     this.health = 1;
-    if(this.type == 1) { this.health = 100; }
+    if(this.type == 1) { this.health = 75; }
 }
 
 function Explosion(x,y) {
@@ -190,6 +193,7 @@ function resetGame()
     waveNo = 0;
     // TODO: This needs to be delayed until sprites have loaded!
     makeCollisionBitmap(1,enemySprites[1]);
+    bulletDamageTimeout = 0;
 }
 
 function init()
@@ -369,6 +373,9 @@ function processKeys() {
     if(keysDown[32]) {
 	fireBullet();
     }
+    if(bulletDamageTimeout > 0) {
+	bulletDamageTimeout -= 1;
+    }
 }
 function moveBullets() {
     if(bulletActive) {
@@ -411,8 +418,8 @@ function moveEnemies() {
 	}
     }
     if(deathAnimation > 0) {
-	if(deathAnimation % 16 == 0) {
-	    addExplosion(x+shipImage.width/2+32*(Math.random()-0.5),y+shipImage.height/2+32*(Math.random()-0.5));
+	if(deathAnimation % 8 == 0) {
+	    addExplosion(x+shipImage.width/2+64*(Math.random()-0.5),y+shipImage.height/2+16*(Math.random()-0.5));
 	}
 	deathAnimation -= 1;
 	if(deathAnimation == 0) {
@@ -481,10 +488,11 @@ function collisionDetector() {
 		}
 	    }
 
-	    if(bulletActive) {
+	    if(bulletActive && (en.type==0 || bulletDamageTimeout <= 0)) {
 		if(en.x + enemyWidth/2 >= bx && en.x -enemyWidth/2<= bx + bullet.width) {
 		    if(en.y + enemyHeight/2 >= by && en.y -enemyHeight/2<= by + bullet.height) {
 			if(en.type == 0 || pixelCollision(bx - en.x+enemyWidth/2, by-en.y+enemyHeight/2)) {
+			    bulletDamageTimeout = 8;
 			    addExplosion(bx,by);
 			    en.health -= 1;
 			    if(en.health <= 0) {
