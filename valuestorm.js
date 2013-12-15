@@ -338,7 +338,7 @@ function collisionDetector() {
 	    if(en.x + enemySize/2 >= x && en.x - enemySize/2<= x + shipImage.width) {
 		if(en.y +enemySize/2 >= y && en.y - enemySize/2<= y + shipImage.height) {
 		    
-		    addExplosion(en.x+enemySize/2,en.y+enemySize/2);
+		    addExplosion(en.x,en.y);
 		    en.health -= 1;
 		    health -= 1;
 		    if(en.health<=0) {
@@ -349,7 +349,7 @@ function collisionDetector() {
 	    if(bulletActive) {
 		if(en.x + enemySize/2 >= bx && en.x -enemySize/2<= bx + bullet.width) {
 		    if(en.y + enemySize/2 >= by && en.y -enemySize/2<= by + bullet.height) {
-			addExplosion(en.x+enemySize/2,en.y+enemySize/2);
+			addExplosion(en.x,en.y);
 			en.health -= 1;
 			if(en.health <= 0) {
 			    en.dead = true;
@@ -409,6 +409,9 @@ if (canvas.getContext('2d')) {
 	if(c==81) {
 	    stopRunloop=true;
 	}
+        if(c==77) {
+            music.pause();
+        }
     };
 
     body.onkeyup = function (event) {
