@@ -20,13 +20,13 @@ var trackpoints = [
 ];
 
 var waves = [ 
-		      [128, 0, 5,-128, 0],
-	      [384, 1, 5,128, 0 ],
-	      [1024, LOOP, 5 ,0, 0],
-	      [1024+128, LOOP,5,-200, 0],
-	      [1024+256, SINE, 10, 0, 0],
-	      [1536, SINE, 10, -200, 0],
-	      [1536+256, SLIDEON, 1, 0, 1],
+              [128,      DIVE,    5,-128, 0],
+	      [384,      SWOOP,   5, 128, 0],
+	      [1024,     LOOP,    5,   0, 0],
+	      [1024+128, LOOP,    5,-200, 0],
+	      [1024+256, SINE,   10,   0, 0],
+	      [1536,     SINE,   10,-200, 0],
+	      [1536+256, SLIDEON, 1,   0, 1],
 ];
 
 function Enemy(type) {
@@ -47,21 +47,21 @@ function Explosion(x,y) {
     this.dead = false;
 }
 
+function getFrameWidth(type) {
+    if(type == 0) { // For animated sprite strips
+	return enemySprites[type].height;
+    }
+    else
+    {
+	return enemySprites[type].width;
+    }
+}
+
 function getImage(name)
 {
     image = new Image();
     image.src = 'graphics/'+name+'.png';
     return image;
-}
-
-function makeWave(track, number) {
-    for(var i=0;i<number;i++) {
-	enemy = new Enemy(1);
-	enemy.x = 800;
-	enemy.y = 240+32*i;
-	enemy.track = track;
-	enemies[enemies.length] = enemy;
-    }
 }
 
 function addEnemy(track, yOffset, type) {
@@ -168,12 +168,19 @@ function init()
 {
     mode = 0;
     shipImage = getImage("ship");
+    enemySprites = new Array();
     enemy1 = getImage("spr385283-29-22.600");
+    boss = getImage("magnacrab");
+
+    enemySprites[0] = enemy1;
+    enemySprites[1] = boss;
+
     bullet = getImage("bullet");
+
+
     cloud = getImage("cloud");
     skyline = getImage("skyline");
     explosion = getImage("explosion");
-    boss = getImage("magnacrab");
     shootSound = new Audio("audio/lowres-shoot.wav");
     explosionSounds = new Array();
     explosionSounds[0]= new Audio("audio/lowres-explode.wav");
@@ -237,16 +244,16 @@ function drawExplosions()
 
 function drawEnemies()
 {
-    var enemySize = 48;
     for(var e=0;e<enemies.length;e++) {
 	en = enemies[e];
+	var enemySize = getFrameWidth(en.type);
 	if(!en.dead) {
 	    if(en.type==0) {
-		ctx.drawImage(enemy1, enemySize*Math.floor((frame/10)%5),0, enemySize,enemySize,
+		ctx.drawImage(enemySprites[en.type], enemySize*Math.floor((frame/10)%5),0, enemySize,enemySize,
                               en.x-enemySize/2, en.y-enemySize/2, enemySize,enemySize);
 	    }
-	    else if(en.type==1) {
-		ctx.drawImage(boss, en.x-boss.width/2, en.y-boss.height/2);
+	    else {
+		ctx.drawImage(enemySprites[en.type], en.x-boss.width/2, en.y-boss.height/2);
 	    }
 	}
     }
@@ -411,8 +418,8 @@ function purge()
 
 function collisionDetector() {
     for(var e=0;e<enemies.length;e++) {
-	enemySize = 48;
 	en = enemies[e];
+	var enemySize = getFrameWidth(en.type);
 	if(!en.dead) {
 	    if(en.x + enemySize/2 >= x && en.x - enemySize/2<= x + shipImage.width) {
 		if(en.y +enemySize/2 >= y && en.y - enemySize/2<= y + shipImage.height) {
@@ -499,6 +506,9 @@ if (canvas.getContext('2d')) {
 	}
         if(c==77) {
             music.pause();
+        }
+        if(c==78) { // CHEAT
+	    health = 100;
         }
 	if(c==32) {
 	    if(mode==0) {
