@@ -118,7 +118,9 @@ function drawChar(context, c, cx, cy)
 	context.fillRect(x,y,8,8);
 	return;
     }
-    context.drawImage(bitfont, index*6, 0, 6,10,cx,cy,12,20);
+    if(index>0) {
+        context.drawImage(bitfont, index*6, 0, 6,8,cx,cy,12,16);
+    }
 }
 
 function drawString(context, string, cx, cy) {
@@ -137,12 +139,12 @@ function paintTitleBitmaps()
     drawString(titlectx, 'To protect our assets, your bullet is connected by elastic ',32,128);
     drawString(titlectx, 'to your fighter aircraft. Please try to return with the ',32,160);
     drawString(titlectx, 'bullet intact.',32,192);
-    drawString(titlectx, 'Arrow keys or WASD to move',32,256);
+    drawString(titlectx, 'Arrow keys or WASD to move, space or F to fire',32,256);
     drawString(titlectx, 'Press space to defend earth',220,256+64);
     drawString(titlectx, 'M:Music off',32,400);
     drawString(winctx, 'Congratulations!',320,200);
     drawString(winctx, 'You have defended the planet with minimal outlay',128,240);
-    drawString(winctx, 'Press R to continue',280,240+64);
+    drawString(winctx, 'Press R to continue',286,240+64);
 }
 
 function makeTitleBitmaps()
@@ -163,6 +165,8 @@ function makeTitleBitmaps()
 
 function makeCollisionBitmap(type,sprite)
 {
+    type = 1;
+    sprite = enemySprites[type];
     var collideBitmap = document.createElement('canvas');
     collideBitmap.width = sprite.width;
     collideBitmap.height = sprite.height;
@@ -202,8 +206,6 @@ function resetGame()
     crabDeathAnimation = -1;
     frame = 0;
     waveNo = 0;
-    // TODO: This needs to be delayed until sprites have loaded!
-    makeCollisionBitmap(1,enemySprites[1]);
     bulletDamageTimeout = 0;
     magLocked = false;
 }
@@ -214,7 +216,9 @@ function init()
     shipImage = getImage("ship");
     enemySprites = new Array();
     enemy1 = getImage("spr385283-29-22.600");
-    boss = getImage("magnacrab");
+    boss = new Image();
+    boss.src = 'graphics/magnacrab.png';
+    boss.onload=makeCollisionBitmap;
 
     enemySprites[0] = enemy1;
     enemySprites[1] = boss;
@@ -225,7 +229,8 @@ function init()
     cloud = getImage("cloud");
     skyline = getImage("skyline");
     explosion = getImage("explosion");
-    shootSound = new Audio("audio/lowres-shoot.wav");
+
+    shootSound = new Audio("audio/shoot.wav");
     magnetSound = new Audio("audio/magnet.wav");
     explosionSounds = new Array();
     explosionSounds[0]= new Audio("audio/lowres-explode.wav");
@@ -388,7 +393,7 @@ function processKeys() {
     if(y>480-shipImage.height) { y = 480-shipImage.height; }
     x += sx;
     y += sy;
-    if(keysDown[32]) {
+    if(keysDown[32] || keysDown[70]) {
 	fireBullet();
     }
     if(bulletDamageTimeout > 0) {
