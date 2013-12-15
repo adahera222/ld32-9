@@ -5,7 +5,6 @@ body = document.getElementsByTagName('body')[0];
 var keysDown = new Array();
 var x;
 var y;
-var frame = 0;
 
 // Track types
 DIVE = 0;
@@ -160,6 +159,8 @@ function resetGame()
     }
     bulletActive = false;
     enemies = new Array();
+    deathAnimation = -1;
+    frame = 0;
 }
 
 function init()
@@ -373,6 +374,15 @@ function moveEnemies() {
 	    en.y += dy;
 	}
     }
+    if(deathAnimation > 0) {
+	if(deathAnimation % 16 == 0) {
+	    addExplosion(x+shipImage.width/2+32*(Math.random()-0.5),y+shipImage.height/2+32*(Math.random()-0.5));
+	}
+	deathAnimation -= 1;
+	if(deathAnimation == 0) {
+	    mode = 0;
+	}
+    }
 }
 
 function purge()
@@ -411,6 +421,9 @@ function collisionDetector() {
 		    health -= 1;
 		    if(en.health<=0) {
 			en.dead = true;
+		    }
+		    if(health <= 0) {
+			deathAnimation = 64;
 		    }
 		}
 	    }
