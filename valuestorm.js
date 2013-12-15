@@ -199,6 +199,7 @@ function resetGame()
     bulletActive = false;
     enemies = new Array();
     deathAnimation = -1;
+    crabDeathAnimation = -1;
     frame = 0;
     waveNo = 0;
     // TODO: This needs to be delayed until sprites have loaded!
@@ -228,7 +229,7 @@ function init()
     explosionSounds[0]= new Audio("audio/lowres-explode.wav");
     explosionSounds[1]= new Audio("audio/lowres-explode.wav");
     explosionNo = 0;
-    springSound = new Audio("audio/spring.wav");
+    springSound = new Audio("audio/boing.wav");
     music = new Audio("vikings-mono.ogg");
     music.loop = true;
     music.addEventListener('ended', function() {
@@ -439,6 +440,13 @@ function moveEnemies() {
 	    mode = 0;
 	}
     }
+    if(crabDeathAnimation > 0) {
+	if(crabDeathAnimation % 4 == 0) {
+	    addExplosion(200+400*Math.random(),120+240*Math.random());
+	}
+	crabDeathAnimation -= 1;
+	
+    }
 }
 
 function purge()
@@ -495,6 +503,7 @@ function collisionDetector() {
 			en.dead = true;
 			if(en.type==BOSSTYPE) {
 			    console.log("BOSS DESTROYED!");
+			    crabDeathAnimation = 64;
 			    mode = 2;
 			}
 		    }
@@ -516,6 +525,7 @@ function collisionDetector() {
 				en.dead = true;
 				if(en.type==BOSSTYPE) {
 				    console.log("BOSS DESTROYED!");
+				    crabDeathAnimation = 64;
 				    mode = 2;
 				}
 
