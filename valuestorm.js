@@ -161,6 +161,7 @@ function resetGame()
     enemies = new Array();
     deathAnimation = -1;
     frame = 0;
+    waveNo = 0;
 }
 
 function init()
@@ -447,8 +448,8 @@ function startWaves() {
 	waveCount -= 1;
 	addEnemy(waveType,waveYoffset,waveEnemy);
     }
-    if(waves.length <= 0) return;
-    wave = waves[0];
+    if(waveNo >= waves.length) return;
+    wave = waves[waveNo];
     if(wave[0] <= frame) {
 	if(waveCount > 0) {
 	    console.log("WARNING: wave was already running, restarting");
@@ -458,8 +459,8 @@ function startWaves() {
 	waveYoffset = wave[3];
 	waveEnemy = wave[4];
 	console.log("Beginning wave: "+waveCount+" enemies type "+waveEnemy+" track "+waveType);
-	waves = waves.slice(1); // Pop off first wave
-	if(waves.length>0) {
+	waveNo += 1;
+	if(waveNo<waves.length) {
 	    console.log("Next wave at frame "+waves[0][0]);
 	}
 	else {
