@@ -23,8 +23,6 @@ var trackpoints = [
 ];
 
 var waves = [ 
-	      [0, SLIDEON, 1,   0, 1],
-
               [100,      DIVE,    5,-128, 0],
 	      [400,      SWOOP,   5, 128, 0],
 	      [700,     LOOP,    5,   0, 0],
