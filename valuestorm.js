@@ -13,6 +13,9 @@ SLIDEON = 2;
 LOOP = 3;
 SINE = 4;
 
+// Enemy types
+BOSSTYPE =1;
+
 var trackpoints = [ 
     [ [-200,0], [-128, 128], [-512, 0] ], // DIVE
     [ [-200,0], [-128, -128], [-512,0] ],  // SWOOP
@@ -20,6 +23,8 @@ var trackpoints = [
 ];
 
 var waves = [ 
+	      [0, SLIDEON, 1,   0, 1],
+
               [100,      DIVE,    5,-128, 0],
 	      [400,      SWOOP,   5, 128, 0],
 	      [700,     LOOP,    5,   0, 0],
@@ -39,7 +44,7 @@ function Enemy(type) {
     this.progress = 0;
     this.dead = false;
     this.health = 1;
-    if(this.type == 1) { this.health = 75; }
+    if(this.type == BOSSTYPE) { this.health = 75; }
 }
 
 function Explosion(x,y) {
@@ -52,7 +57,7 @@ function Explosion(x,y) {
 }
 
 function getFrameWidth(type) {
-    if(type == 0) { // For animated sprite strips
+    if(type != BOSSTYPE) { // For animated sprite strips
 	return enemySprites[type].height;
     }
     else
@@ -94,7 +99,7 @@ function makeSineTrack()
     trackpoints[SINE] = tracks;
 }
 
-function drawChar(c, cx, cy) 
+function drawChar(context, c, cx, cy) 
 {
     c = c.charCodeAt(0);
     if(c >= 65 && c <= 90) {
@@ -111,45 +116,52 @@ function drawChar(c, cx, cy)
     else if(c == 44) { index = 41; }
     else
     {
-	titlectx.fillStyle = "#ff0000";
-	titlectx.fillRect(x,y,8,8);
+	context.fillStyle = "#ff0000";
+	context.fillRect(x,y,8,8);
 	return;
     }
-    titlectx.drawImage(bitfont, index*6, 0, 6,10,cx,cy,12,20);
+    context.drawImage(bitfont, index*6, 0, 6,10,cx,cy,12,20);
 }
 
-function drawString(string, cx, cy) {
+function drawString(context, string, cx, cy) {
     string = string.toUpperCase();
     for(i=0;i<string.length;i++) {
-	drawChar(string[i], cx,cy);
+	drawChar(context, string[i], cx,cy);
 	cx += 12;
     }
 }
 
-function paintTitleBitmap()
+function paintTitleBitmaps()
 {
-    drawString('It is the 28th year of continuous alien attack of earth.',32,32);
-    drawString('Due to budget underruns we can only supply you with one ',32,64);
-    drawString('bullet to defend our planet.',32,96);
-    drawString('To protect our assets, your bullet is connected by elastic ',32,128);
-    drawString('to your fighter aircraft. Please try to return with the ',32,160);
-    drawString('bullet intact.',32,192);
-    drawString('Arrow keys or WASD to move',32,256);
-    drawString('Press space to defend earth',220,256+64);
-    drawString('M:Music off',32,400);
+    drawString(titlectx, 'It is the 28th year of continuous alien attack of earth.',32,32);
+    drawString(titlectx, 'Due to budget underruns we can only supply you with one ',32,64);
+    drawString(titlectx, 'bullet to defend our planet.',32,96);
+    drawString(titlectx, 'To protect our assets, your bullet is connected by elastic ',32,128);
+    drawString(titlectx, 'to your fighter aircraft. Please try to return with the ',32,160);
+    drawString(titlectx, 'bullet intact.',32,192);
+    drawString(titlectx, 'Arrow keys or WASD to move',32,256);
+    drawString(titlectx, 'Press space to defend earth',220,256+64);
+    drawString(titlectx, 'M:Music off',32,400);
+    drawString(winctx, 'Congratulations!',320,200);
+    drawString(winctx, 'You have defended the planet with minimal outlay',128,240);
+    drawString(winctx, 'Press R to continue',280,240+64);
 }
 
-function makeTitleBitmap()
+function makeTitleBitmaps()
 {
     titleBitmap = document.createElement('canvas');
     titleBitmap.width = 800;
     titleBitmap.height = 480;
     titlectx = titleBitmap.getContext('2d');
+    winBitmap = document.createElement('canvas');
+    winBitmap.width = 800;
+    winBitmap.height = 480;
+    winctx = winBitmap.getContext('2d');
     bitfont = new Image();
     bitfont.src = "graphics/bitfont.png";
-    bitfont.onload = paintTitleBitmap;
-    return titleBitmap;
+    bitfont.onload = paintTitleBitmaps;
 }
+
 
 function makeCollisionBitmap(type,sprite)
 {
@@ -228,7 +240,7 @@ function init()
     music.play();
     makeLoopTrack();
     makeSineTrack();
-    titleBitmap = makeTitleBitmap();    
+    makeTitleBitmaps();
     return true;
 }
 
@@ -335,6 +347,9 @@ function draw() {
 	    ctx.fillRect(8+i*16,8,8,16);
 	}
     }
+    if(mode==2) {
+	ctx.drawImage(winBitmap, 0, 0);
+    }
 }
 
 function fireBullet() {
@@ -406,7 +421,7 @@ function moveEnemies() {
 	en.progress += (track.length);
 	pos = Math.floor(en.progress / 512);
 	if(pos >= track.length) {
-	    if(en.type == 0) { // Boss stays on screen forever
+	    if(en.type != BOSSTYPE) { // Boss stays on screen forever
 		en.dead = true;	   
 	    }
 	}
@@ -470,7 +485,7 @@ function collisionDetector() {
 	    if(en.x + enemyWidth/2 >= x && en.x - enemyWidth/2<= x + shipImage.width) {
 		if(en.y +enemyHeight/2 >= y && en.y - enemyHeight/2<= y + shipImage.height) {
 		    // Lazy collision detector for ship - just check corners
-		    if(en.type == 0 || pixelCollision(x - en.x+enemyWidth/2, y-en.y+enemyHeight/2)
+		    if(en.type != BOSSTYPE || pixelCollision(x - en.x+enemyWidth/2, y-en.y+enemyHeight/2)
 		       || pixelCollision(x+shipImage.width - en.x+enemyWidth/2, y-en.y+enemyHeight/2)
 		       || pixelCollision(x - en.x+enemyWidth/2, y+shipImage.height-en.y+enemyHeight/2)
 		      ) {
@@ -480,6 +495,10 @@ function collisionDetector() {
 		    health -= 1;
 		    if(en.health<=0) {
 			en.dead = true;
+			if(en.type==BOSSTYPE) {
+			    console.log("BOSS DESTROYED!");
+			    mode = 2;
+			}
 		    }
 		    if(health <= 0) {
 			deathAnimation = 64;
@@ -488,15 +507,20 @@ function collisionDetector() {
 		}
 	    }
 
-	    if(bulletActive && (en.type==0 || bulletDamageTimeout <= 0)) {
+	    if(bulletActive && (en.type!=BOSSTYPE || bulletDamageTimeout <= 0)) {
 		if(en.x + enemyWidth/2 >= bx && en.x -enemyWidth/2<= bx + bullet.width) {
 		    if(en.y + enemyHeight/2 >= by && en.y -enemyHeight/2<= by + bullet.height) {
-			if(en.type == 0 || pixelCollision(bx - en.x+enemyWidth/2, by-en.y+enemyHeight/2)) {
+			if(en.type != BOSSTYPE || pixelCollision(bx - en.x+enemyWidth/2, by-en.y+enemyHeight/2)) {
 			    bulletDamageTimeout = 8;
 			    addExplosion(bx,by);
 			    en.health -= 1;
 			    if(en.health <= 0) {
 				en.dead = true;
+				if(en.type==BOSSTYPE) {
+				    console.log("BOSS DESTROYED!");
+				    mode = 2;
+				}
+
 			    }
 			}
 		    }
@@ -570,6 +594,11 @@ if (canvas.getContext('2d')) {
 	    if(mode==0) {
 		resetGame();
 		mode = 1;
+	    }
+	}
+	if(c==82) {
+	    if(mode==2) {
+		mode = 0;
 	    }
 	}
     };
