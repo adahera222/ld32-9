@@ -103,6 +103,7 @@ function drawChar(c, cx, cy)
     else if(c==32) {
 	return;
     }
+    else if(c == 58) { index = 13; }
     else if(c == 46) { index = 40; }
     else if(c == 44) { index = 41; }
     else
@@ -131,7 +132,8 @@ function paintTitleBitmap()
     drawString('to your fighter aircraft. Please try to return with the ',32,160);
     drawString('bullet intact.',32,192);
     drawString('Arrow keys or WASD to move',32,256);
-    drawString('Press space to defend earth',64,256+32);
+    drawString('Press space to defend earth',220,256+64);
+    drawString('M:Music off',32,400);
 }
 
 function makeTitleBitmap()
@@ -443,11 +445,12 @@ function purge()
 }
 
 function pixelCollision(x,y) {
+    if(x<0 || y<0 || x>getFrameWidth(1) || y>enemySprites[1].height) { return false; }
     px = Math.floor(x/8);
     py = Math.floor(y/8);
     pwide = Math.floor(getFrameWidth(1)/8);
-    console.log("pwide= "+pwide);
     alpha = collideData[px+py*pwide];
+    console.log("pixelCollision("+x+","+y+") == "+alpha);
     return alpha > 127;
 }
 
@@ -459,6 +462,11 @@ function collisionDetector() {
 	if(!en.dead) {
 	    if(en.x + enemyWidth/2 >= x && en.x - enemyWidth/2<= x + shipImage.width) {
 		if(en.y +enemyHeight/2 >= y && en.y - enemyHeight/2<= y + shipImage.height) {
+		    // Lazy collision detector for ship - just check corners
+		    if(en.type == 0 || pixelCollision(x - en.x+enemyWidth/2, y-en.y+enemyHeight/2)
+		       || pixelCollision(x+shipImage.width - en.x+enemyWidth/2, y-en.y+enemyHeight/2)
+		       || pixelCollision(x - en.x+enemyWidth/2, y+shipImage.height-en.y+enemyHeight/2)
+		      ) {
 		    
 		    addExplosion(en.x,en.y);
 		    en.health -= 1;
@@ -468,6 +476,7 @@ function collisionDetector() {
 		    }
 		    if(health <= 0) {
 			deathAnimation = 64;
+		    }
 		    }
 		}
 	    }
