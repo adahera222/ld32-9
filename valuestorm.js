@@ -23,6 +23,8 @@ var trackpoints = [
 ];
 
 var waves = [ 
+	      [0, SLIDEON, 1,   0, 1],
+
               [100,      DIVE,    5,-128, 0],
 	      [400,      SWOOP,   5, 128, 0],
 	      [700,     LOOP,    5,   0, 0],
@@ -205,6 +207,7 @@ function resetGame()
     // TODO: This needs to be delayed until sprites have loaded!
     makeCollisionBitmap(1,enemySprites[1]);
     bulletDamageTimeout = 0;
+    magLocked = false;
 }
 
 function init()
@@ -393,24 +396,41 @@ function processKeys() {
 }
 function moveBullets() {
     if(bulletActive) {
-	captureTimeout -= 1;
-	bx += bdx;
-	by += bdy;
-        if(bdx < 0 && !bulletSprung) {
-            springSound.play();
-            bulletSprung = true;
+        if(magLocked) {
+            if(mode==2) { magLocked = false; return; }
+	    dx = bx - x - shipImage.width/2;
+	    dy = by - y - shipImage.height/2;
+            distsq = dx*dx+dy*dy;
+            if(distsq > 256*256) {
+                magLocked = false;
+                //bx -= dx*0.25;
+                //by -= dy*0.25
+                bdx = 0;
+                bdy = 0;
+            }
         }
-	dx = bx - x - shipImage.width/2;
-	dy = by - y - shipImage.height/2;
-	if(captureTimeout < 0 && Math.abs(dx)< 32 && Math.abs(dy)<32) {
-	    bulletActive = false;
-	} else {
-	    bdx -= (dx/300);
-	    bdy -= (dy/300);
-	    bdx *= 0.95;
-	    bdy *= 0.95;
-	}	
+        else
+        {
+	    captureTimeout -= 1;
+	    bx += bdx;
+	    by += bdy;
+            if(bdx < 0 && !bulletSprung) {
+                springSound.play();
+                bulletSprung = true;
+            }
+	    dx = bx - x - shipImage.width/2;
+	    dy = by - y - shipImage.height/2;
+	    if(captureTimeout < 0 && Math.abs(dx)< 32 && Math.abs(dy)<32) {
+	        bulletActive = false;
+	    } else {
+	        bdx -= (dx/300);
+	        bdy -= (dy/300);
+	        bdx *= 0.95;
+	        bdy *= 0.95;
+	    }	
+        }
     }
+
 }
 
 function moveEnemies() {
@@ -429,6 +449,10 @@ function moveEnemies() {
 	    dy = track[pos][1] / 64;
 	    en.x += dx;
 	    en.y += dy;
+            if(magLocked && en.type==BOSSTYPE) {
+                bx += dx;
+            }
+
 	}
     }
     if(deathAnimation > 0) {
@@ -478,7 +502,6 @@ function pixelCollision(x,y) {
     py = Math.floor(y/8);
     pwide = Math.floor(getFrameWidth(1)/8);
     alpha = collideData[px+py*pwide];
-    console.log("pixelCollision("+x+","+y+") == "+alpha);
     return alpha > 127;
 }
 
@@ -517,19 +540,34 @@ function collisionDetector() {
 	    if(bulletActive && (en.type!=BOSSTYPE || bulletDamageTimeout <= 0)) {
 		if(en.x + enemyWidth/2 >= bx && en.x -enemyWidth/2<= bx + bullet.width) {
 		    if(en.y + enemyHeight/2 >= by && en.y -enemyHeight/2<= by + bullet.height) {
-			if(en.type != BOSSTYPE || pixelCollision(bx - en.x+enemyWidth/2, by-en.y+enemyHeight/2)) {
-			    bulletDamageTimeout = 8;
-			    addExplosion(bx,by);
-			    en.health -= 1;
-			    if(en.health <= 0) {
-				en.dead = true;
-				if(en.type==BOSSTYPE) {
-				    console.log("BOSS DESTROYED!");
-				    crabDeathAnimation = 64;
-				    mode = 2;
-				}
+                        relx = bx - en.x+enemyWidth/2;
+                        rely = by - en.y+enemyHeight/2
+			if(en.type != BOSSTYPE || pixelCollision(relx, rely)) {
+                            if(!magLocked) {
+			        bulletDamageTimeout = 8;
+			        addExplosion(bx,by);
+			        en.health -= 1;
+			        if(en.health <= 0) {
+				    en.dead = true;
+				    if(en.type==BOSSTYPE) {
+				        console.log("BOSS DESTROYED!");
+				        crabDeathAnimation = 64;
+				        mode = 2;
+				    }
 
-			    }
+			        }
+                            }
+                            if(en.type==BOSSTYPE) {
+                                if(rely<80 && relx>0 && relx<=getFrameWidth(1) && rely>0 && !magLocked) {
+                                    console.log("Checking for magnet at "+relx+","+rely);
+                                    if(relx<45) {
+                                        magLocked = true;
+                                    }
+                                    else if(relx>520) {
+                                        magLocked = true;
+                                    }
+                                }
+                            }
 			}
 		    }
 		}
