@@ -144,6 +144,28 @@ function makeTitleBitmap()
     return titleBitmap;
 }
 
+function makeCollisionBitmap(type,sprite)
+{
+    var collideBitmap = document.createElement('canvas');
+    collideBitmap.width = sprite.width;
+    collideBitmap.height = sprite.height;
+    console.log("Collision bitmap created at "+sprite.width+"x"+sprite.height);
+    collctx = collideBitmap.getContext('2d');
+    collctx.drawImage(sprite,0,0);
+    pixels = collctx.getImageData(0,0,1,1);
+    var alpha = pixels.data[3];
+    console.log("alpha channel is "+alpha);
+    gridWidth = Math.floor(sprite.width/8);
+    gridHeight = Math.floor(sprite.width/8);
+    collideData = new Array();
+    for(py=0;py<gridHeight;py++) {
+	for(px=0;px<gridWidth;px++) {
+	    pixels = collctx.getImageData(px*8,py*8,1,1);
+	    collideData[px+py*gridWidth] = pixels.data[3];
+	}
+    }
+}
+
 function resetGame()
 {
     x = 128;
@@ -162,6 +184,7 @@ function resetGame()
     deathAnimation = -1;
     frame = 0;
     waveNo = 0;
+    makeCollisionBitmap(1,enemySprites[1]);
 }
 
 function init()
@@ -416,13 +439,18 @@ function purge()
     explosions = newExplosions;
 }
 
+function pixelCollision(x,y) {
+    return true;
+}
+
 function collisionDetector() {
     for(var e=0;e<enemies.length;e++) {
 	en = enemies[e];
-	var enemySize = getFrameWidth(en.type);
+	var enemyWidth = getFrameWidth(en.type);
+	var enemyHeight = enemySprites[en.type].height;
 	if(!en.dead) {
-	    if(en.x + enemySize/2 >= x && en.x - enemySize/2<= x + shipImage.width) {
-		if(en.y +enemySize/2 >= y && en.y - enemySize/2<= y + shipImage.height) {
+	    if(en.x + enemyWidth/2 >= x && en.x - enemyWidth/2<= x + shipImage.width) {
+		if(en.y +enemyHeight/2 >= y && en.y - enemyHeight/2<= y + shipImage.height) {
 		    
 		    addExplosion(en.x,en.y);
 		    en.health -= 1;
@@ -435,13 +463,16 @@ function collisionDetector() {
 		    }
 		}
 	    }
+
 	    if(bulletActive) {
-		if(en.x + enemySize/2 >= bx && en.x -enemySize/2<= bx + bullet.width) {
-		    if(en.y + enemySize/2 >= by && en.y -enemySize/2<= by + bullet.height) {
-			addExplosion(en.x,en.y);
-			en.health -= 1;
-			if(en.health <= 0) {
-			    en.dead = true;
+		if(en.x + enemyWidth/2 >= bx && en.x -enemyWidth/2<= bx + bullet.width) {
+		    if(en.y + enemyHeight/2 >= by && en.y -enemyHeight/2<= by + bullet.height) {
+			if(en.type == 0 || pixelCollision(bx - en.x-enemyWidth/2, by-en.y-enemyHeight/2)) {
+			    addExplosion(en.x,en.y);
+			    en.health -= 1;
+			    if(en.health <= 0) {
+				en.dead = true;
+			    }
 			}
 		    }
 		}
