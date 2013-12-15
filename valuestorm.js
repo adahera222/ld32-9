@@ -16,7 +16,7 @@ SINE = 4;
 var trackpoints = [ 
     [ [-200,0], [-128, 128], [-512, 0] ], // DIVE
     [ [-200,0], [-128, -128], [-512,0] ],  // SWOOP
-    [ [-32,0]  ]  // SLIDEON
+    [ [-128,0]  ]  // SLIDEON
 ];
 
 var waves = [ 
@@ -36,7 +36,7 @@ function Enemy(type) {
     this.progress = 0;
     this.dead = false;
     this.health = 1;
-    if(this.type == 1) { this.health = 10; }
+    if(this.type == 1) { this.health = 100; }
 }
 
 function Explosion(x,y) {
@@ -67,7 +67,7 @@ function getImage(name)
 
 function addEnemy(track, yOffset, type) {
     enemy = new Enemy(type);
-    enemy.x = 800;
+    enemy.x = 800+getFrameWidth(type);
     enemy.y = 240+yOffset;
     enemy.track = track;
     enemies[enemies.length] = enemy;
@@ -130,7 +130,8 @@ function paintTitleBitmap()
     drawString('To protect our assets, your bullet is connected by elastic ',32,128);
     drawString('to your fighter aircraft. Please try to return with the ',32,160);
     drawString('bullet intact.',32,192);
-    drawString('Press space to defend earth',64,256);
+    drawString('Arrow keys or WASD to move',32,256);
+    drawString('Press space to defend earth',64,256+32);
 }
 
 function makeTitleBitmap()
@@ -185,6 +186,7 @@ function resetGame()
     deathAnimation = -1;
     frame = 0;
     waveNo = 0;
+    // TODO: This needs to be delayed until sprites have loaded!
     makeCollisionBitmap(1,enemySprites[1]);
 }
 
@@ -342,16 +344,16 @@ function fireBullet() {
 }
 
 function processKeys() {
-    if(keysDown[40]) {
+    if(keysDown[40] || keysDown[83]) {
 	sy += 2;
     }
-    if(keysDown[38]) {
+    if(keysDown[38] || keysDown[87]) {
 	sy -= 2;
     }
-    if(keysDown[37]) {
+    if(keysDown[37] || keysDown[65]) {
 	sx -= 2;
     }
-    if(keysDown[39]) {
+    if(keysDown[39] || keysDown[68]) {
 	sx += 2;
     }
     sx = sx * 0.8;
@@ -446,7 +448,6 @@ function pixelCollision(x,y) {
     pwide = Math.floor(getFrameWidth(1)/8);
     console.log("pwide= "+pwide);
     alpha = collideData[px+py*pwide];
-    console.log("Collision detector: "+x+","+y+ "= grid ref "+px+","+py+" = ref "+px+py*pwide+" alpha "+alpha);
     return alpha > 127;
 }
 
