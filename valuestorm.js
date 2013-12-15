@@ -23,8 +23,6 @@ var trackpoints = [
 ];
 
 var waves = [ 
-	      [0, SLIDEON, 1,   0, 1],
-
               [100,      DIVE,    5,-128, 0],
 	      [400,      SWOOP,   5, 128, 0],
 	      [700,     LOOP,    5,   0, 0],
@@ -48,7 +46,7 @@ function Enemy(type) {
 }
 
 function Explosion(x,y) {
-    explosionSounds[explosionNo%2].play();
+    explosionSounds[explosionNo%4].play();
     explosionNo+=1;
     this.x = x;
     this.y = y;
@@ -228,9 +226,12 @@ function init()
     skyline = getImage("skyline");
     explosion = getImage("explosion");
     shootSound = new Audio("audio/lowres-shoot.wav");
+    magnetSound = new Audio("audio/magnet.wav");
     explosionSounds = new Array();
     explosionSounds[0]= new Audio("audio/lowres-explode.wav");
     explosionSounds[1]= new Audio("audio/lowres-explode.wav");
+    explosionSounds[2]= new Audio("audio/lowres-explode.wav");
+    explosionSounds[3]= new Audio("audio/lowres-explode.wav");
     explosionNo = 0;
     springSound = new Audio("audio/boing.wav");
     music = new Audio("vikings-mono.ogg");
@@ -402,6 +403,7 @@ function moveBullets() {
 	    dy = by - y - shipImage.height/2;
             distsq = dx*dx+dy*dy;
             if(distsq > 256*256) {
+                springSound.play();
                 magLocked = false;
                 //bx -= dx*0.25;
                 //by -= dy*0.25
@@ -560,11 +562,9 @@ function collisionDetector() {
                             if(en.type==BOSSTYPE) {
                                 if(rely<80 && relx>0 && relx<=getFrameWidth(1) && rely>0 && !magLocked) {
                                     console.log("Checking for magnet at "+relx+","+rely);
-                                    if(relx<45) {
+                                    if(relx<45 || relx>520) {
                                         magLocked = true;
-                                    }
-                                    else if(relx>520) {
-                                        magLocked = true;
+                                        magnetSound.play();
                                     }
                                 }
                             }
